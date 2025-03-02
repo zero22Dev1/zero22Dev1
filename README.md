@@ -46,3 +46,15 @@ sheet.Cells(2, 3).AutoFit()
 
 ' レポートを表示
 report.Show()
+
+
+
+
+' スタイルの作成
+c1FlexGrid1.Styles.Add("shortTimeStyle")
+c1FlexGrid1.Styles("shortTimeStyle").DataType = GetType(DateTime) ' データ型をDateTimeに設定
+c1FlexGrid1.Styles("shortTimeStyle").Format = "t" ' 短い時刻形式を指定
+
+' スタイルをセルに適用し、現在の時刻を設定
+c1FlexGrid1.SetCellStyle(1, 1, c1FlexGrid1.Styles("shortTimeStyle"))
+c1FlexGrid1(1, 1) = DateTime.Now
