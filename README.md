@@ -22,3 +22,27 @@ For Each dr As DataRow In dt.Rows
         C1FlexGrid1(newRowIndex, colIndex) = dr(colIndex)
     Next
 Next
+
+
+
+
+Dim report As New VBRReport
+Dim sheet As VBRSheet
+
+' レポートファイルを開く
+report.Open("sample.vbr") ' 既存のVBRファイルを指定
+
+' シートを取得（1枚目のシート）
+sheet = report.Sheets(0)
+
+' セルに改行を含むデータをセット（例：2行目の3列目）
+sheet.Cells(2, 3).Value = "行1" & vbNewLine & "行2" & vbNewLine & "行3"
+
+' セルの折り返し設定を有効化（必要に応じて）
+sheet.Cells(2, 3).WordWrap = True
+
+' セルの高さを自動調整（オプション）
+sheet.Cells(2, 3).AutoFit()
+
+' レポートを表示
+report.Show()
