@@ -11,7 +11,7 @@
 
 [基本情報過去問道場](https://www.fe-siken.com/fekakomon.php)
 
-##復讐用
+##復習用
 
 
 [応用情報](https://www.ap-siken.com/)
