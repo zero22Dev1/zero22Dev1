@@ -16,9 +16,9 @@
 
 [応用情報](https://www.ap-siken.com/)
 
------------------------------------
+-----------------📝----------------
 -----------------------------------
 
 https://zenn.dev/datchlive/articles/9a8b821fd2486b
-
+https://qiita.com/inokou/items/fff2917aa0d0963b565b
 
