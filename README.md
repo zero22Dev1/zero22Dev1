@@ -16,5 +16,9 @@
 
 [応用情報](https://www.ap-siken.com/)
 
+-----------------------------------
+-----------------------------------
+
+https://zenn.dev/datchlive/articles/9a8b821fd2486b
 
 
