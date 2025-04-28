@@ -30,6 +30,7 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
  <li><a her = "https://recursionist.io/dashboard/problems/224">掛け算（再帰）</a></li>
  <li><a her = "https://recursionist.io/dashboard/problems/221">文字列の合体</a></li>
 <li><a her = "https://recursionist.io/dashboard/problems/228">共通の接頭辞</a></li>
+ <li><a her = "hhttps://recursionist.io/dashboard/problems/363">kで割り続ける</a></li>
 </ul>
 
 
