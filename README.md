@@ -24,13 +24,12 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 
 ---------------------------------------
 ---------------------------------------
-<p2>RecursionCSの復習リスト</p2>
-<ul>
- <li>タイトル</li>
- <li><a her = "https://recursionist.io/dashboard/problems/224">掛け算（再帰）</a></li>
- <li><a her = "https://recursionist.io/dashboard/problems/221">文字列の合体</a></li>
-<li><a her = "https://recursionist.io/dashboard/problems/228">共通の接頭辞</a></li>
- <li><a her = "hhttps://recursionist.io/dashboard/problems/363">kで割り続ける</a></li>
-</ul>
+## RecursionCSの復習リスト
+
+- タイトル
+- [掛け算（再帰）](https://recursionist.io/dashboard/problems/224)
+- [文字列の合体](https://recursionist.io/dashboard/problems/221)
+- [共通の接頭辞](https://recursionist.io/dashboard/problems/228)
+- [kで割り続ける](https://recursionist.io/dashboard/problems/363)
 
 
