@@ -28,8 +28,10 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 
 - タイトル
 - [掛け算（再帰）](https://recursionist.io/dashboard/problems/224)
-- [文字列の合体](https://recursionist.io/dashboard/problems/221)
+- [文字列の合体](https://recursionist.io/dashboard/problems/221)→理解した
 - [共通の接頭辞](https://recursionist.io/dashboard/problems/228)
-- [kで割り続ける](https://recursionist.io/dashboard/problems/363)
-- [整数上の平方根](https://recursionist.io/dashboard/problems/367)
+- [kで割り続ける](https://recursionist.io/dashboard/problems/363) →理解した
+- [整数上の平方根](https://recursionist.io/dashboard/problems/367) →理解した
+- [仮想通貨](https://recursionist.io/dashboard/problems/364) →理解した
+- [3つの最大公約数](https://recursionist.io/dashboard/problems/365) →理解した
 
