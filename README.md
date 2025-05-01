@@ -31,5 +31,5 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 - [文字列の合体](https://recursionist.io/dashboard/problems/221)
 - [共通の接頭辞](https://recursionist.io/dashboard/problems/228)
 - [kで割り続ける](https://recursionist.io/dashboard/problems/363)
-
+-[整数上の平方根](https://recursionist.io/dashboard/problems/367)
 
