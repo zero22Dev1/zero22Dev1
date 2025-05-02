@@ -36,7 +36,8 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 
 ---------------------------------------
 ---------------------------------------
-
+## RecursionCSのやること
+## 2025/05/02
 1. [掛け算（再帰）](https://recursionist.io/dashboard/problems/224)
 2. [共通の接頭辞](https://recursionist.io/dashboard/problems/228)
 3. [既約分数](https://recursionist.io/dashboard/problems/366)
