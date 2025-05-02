@@ -32,7 +32,7 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 - [整数上の平方根](https://recursionist.io/dashboard/problems/367) →理解した
 - [仮想通貨](https://recursionist.io/dashboard/problems/364) →理解した
 - [3つの最大公約数](https://recursionist.io/dashboard/problems/365) →理解した
-- [数字を分割して足す](https://recursionist.io/dashboard/course/2/lesson/172)
+- [数字を分割して足す](https://recursionist.io/dashboard/course/2/lesson/172)  →理解した
 
 
 ---------------------------------------
