@@ -36,6 +36,7 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 - [正方形の合計枚数](https://recursionist.io/dashboard/course/2/lesson/171)
 - [既約分数](https://recursionist.io/dashboard/problems/366)
 - [共通の接頭辞](https://recursionist.io/dashboard/problems/228)
+- [2の倍数の合計](https://recursionist.io/dashboard/problems/372)
 
 
 ---------------------------------------
@@ -43,7 +44,6 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 ## RecursionCSのやること
 ## 2025/05/03
 1. [掛け算（再帰）](https://recursionist.io/dashboard/problems/224)
-2. [2の倍数の合計](https://recursionist.io/dashboard/problems/372)
 3. [購入できる最大のパンの個数](https://recursionist.io/dashboard/problems/232)
 4. [文字列の圧縮](https://recursionist.io/dashboard/problems/227) 
 5. [素数（再帰）](https://recursionist.io/dashboard/problems/368)
