@@ -37,18 +37,17 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 - [既約分数](https://recursionist.io/dashboard/problems/366)
 - [共通の接頭辞](https://recursionist.io/dashboard/problems/228)
 - [2の倍数の合計](https://recursionist.io/dashboard/problems/372)
+- [掛け算（再帰）](https://recursionist.io/dashboard/problems/224)
 
 
 ---------------------------------------
 ---------------------------------------
 ## RecursionCSのやること
-## 2025/05/03
-1. [掛け算（再帰）](https://recursionist.io/dashboard/problems/224)
-3. [購入できる最大のパンの個数](https://recursionist.io/dashboard/problems/232)
-4. [文字列の圧縮](https://recursionist.io/dashboard/problems/227) 
-5. [素数（再帰）](https://recursionist.io/dashboard/problems/368)
+## 2025/05/04
+1. [3で割り続ける](https://recursionist.io/dashboard/course/2/lesson/173)
+2. [購入できる最大のパンの個数](https://recursionist.io/dashboard/problems/232)
+3. [文字列の圧縮](https://recursionist.io/dashboard/problems/227) 
+4. [素数（再帰）](https://recursionist.io/dashboard/problems/368)
 
-## 2025/05/04 (数字の分割まで)
-1.[3で割り続ける](https://recursionist.io/dashboard/course/2/lesson/173)
 
    
