@@ -25,7 +25,7 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 ---------------------------------------
 ---------------------------------------
 ## RecursionCSの復習リスト
-## 2025/05/01
+## 2025/05/05
 - [タイトル](URL);
 - [文字列の合体](https://recursionist.io/dashboard/problems/221)→理解した
 - [kで割り続ける](https://recursionist.io/dashboard/problems/363) →理解した
@@ -45,7 +45,7 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 ---------------------------------------
 ---------------------------------------
 ## RecursionCSのやること
-## 2025/05/04
+## 2025/05/05
 1. [3で割り続ける](https://recursionist.io/dashboard/course/2/lesson/173)
 2. [購入できる最大のパンの個数](https://recursionist.io/dashboard/problems/232)
 
