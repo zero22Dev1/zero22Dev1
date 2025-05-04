@@ -41,6 +41,7 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 - [素数（再帰）](https://recursionist.io/dashboard/problems/368)
 - [3で割り続ける](https://recursionist.io/dashboard/course/2/lesson/173)
 - [フィボナッチ数列](https://recursionist.io/dashboard/problems/47)
+- 
 
 
 
@@ -49,6 +50,7 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 ## RecursionCSのやること
 ## 2025/05/05
 1. [購入できる最大のパンの個数](https://recursionist.io/dashboard/problems/232)
+2. [文字列の圧縮](https://recursionist.io/dashboard/problems/227)
 
 
 
