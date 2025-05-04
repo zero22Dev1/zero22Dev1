@@ -51,6 +51,12 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 ## 2025/05/05
 1. [購入できる最大のパンの個数](https://recursionist.io/dashboard/problems/232)
 2. [文字列の圧縮](https://recursionist.io/dashboard/problems/227)
+3. [投資の計算](https://recursionist.io/dashboard/course/2/lesson/175)
+4. [数字の分割](https://recursionist.io/dashboard/course/2/lesson/177)
+5. [x になるまでの組み合わせ](https://recursionist.io/dashboard/problems/134)
+6. [ハノイの塔](https://recursionist.io/dashboard/problems/151)
+7. [k番目の要素](https://recursionist.io/dashboard/problems/229)
+8. [タイルの数](https://recursionist.io/dashboard/problems/231)
 
 
 
