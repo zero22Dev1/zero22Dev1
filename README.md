@@ -41,7 +41,7 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 - [素数（再帰）](https://recursionist.io/dashboard/problems/368)
 - [3で割り続ける](https://recursionist.io/dashboard/course/2/lesson/173)
 - [フィボナッチ数列](https://recursionist.io/dashboard/problems/47)
-- 
+- [約数](https://recursionist.io/dashboard/course/2/lesson/174)
 
 
 
