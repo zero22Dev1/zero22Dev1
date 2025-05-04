@@ -39,15 +39,15 @@ https://qiita.com/inokou/items/fff2917aa0d0963b565b
 - [2の倍数の合計](https://recursionist.io/dashboard/problems/372)
 - [掛け算（再帰）](https://recursionist.io/dashboard/problems/224)
 - [素数（再帰）](https://recursionist.io/dashboard/problems/368)
-- [素数（再帰）](https://recursionist.io/dashboard/problems/368)
+- [3で割り続ける](https://recursionist.io/dashboard/course/2/lesson/173)
+
 
 
 ---------------------------------------
 ---------------------------------------
 ## RecursionCSのやること
 ## 2025/05/05
-1. [3で割り続ける](https://recursionist.io/dashboard/course/2/lesson/173)
-2. [購入できる最大のパンの個数](https://recursionist.io/dashboard/problems/232)
+1. [購入できる最大のパンの個数](https://recursionist.io/dashboard/problems/232)
 
 
 
