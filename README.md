@@ -1,3 +1,11 @@
+
+SHOW VARIABLES LIKE 'wait_timeout';
+SHOW VARIABLES LIKE 'interactive_timeout';
+SHOW VARIABLES LIKE 'max_allowed_packet';
+SHOW VARIABLES LIKE 'max_connections';
+
+
+
 #📝メモ
 [RecursionCS](https://recursionist.io/dashboard)
 
