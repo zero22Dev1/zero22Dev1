@@ -1,4 +1,4 @@
-
+mysql -h 127.0.0.1 -P 3309 -u root -p
 SHOW VARIABLES LIKE 'wait_timeout';
 SHOW VARIABLES LIKE 'interactive_timeout';
 SHOW VARIABLES LIKE 'max_allowed_packet';
