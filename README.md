@@ -4,7 +4,8 @@ SHOW VARIABLES LIKE 'interactive_timeout';
 SHOW VARIABLES LIKE 'max_allowed_packet';
 SHOW VARIABLES LIKE 'max_connections';
 
-
+SHOW STATUS LIKE 'Threads_connected';
+SHOW FULL PROCESSLIST;
 
 #📝メモ
 [RecursionCS](https://recursionist.io/dashboard)
