@@ -1,3 +1,8 @@
+```cmd
+netsh winhttp show proxy
+```
+
+
 ```bat
 @echo off
 setlocal
