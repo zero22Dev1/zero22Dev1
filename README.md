@@ -1,72 +1,71 @@
-mysql -h 127.0.0.1 -P 3309 -u root -p
-SHOW VARIABLES LIKE 'wait_timeout';
-SHOW VARIABLES LIKE 'interactive_timeout';
-SHOW VARIABLES LIKE 'max_allowed_packet';
-SHOW VARIABLES LIKE 'max_connections';
+```bat
+@echo off
+setlocal
 
-SHOW STATUS LIKE 'Threads_connected';
-SHOW FULL PROCESSLIST;
+:: =========================================
+:: MySQL 8.4 ポート変更＋再起動バッチ
+:: Usage:
+::   change_mysql84_port_and_restart.bat <NEW_PORT>
+::
+:: 例:
+::   change_mysql84_port_and_restart.bat 3307
+:: =========================================
 
-#📝メモ
-[RecursionCS](https://recursionist.io/dashboard)
+if "%~1"=="" (
+  echo [ERROR] 新しいポート番号を指定してください。
+  echo 例: change_mysql84_port_and_restart.bat 3307
+  exit /b 1
+)
 
-[Markdown記法 サンプル集](https://qiita.com/tbpgr/items/989c6badefff69377da7)
+set "NEW_PORT=%~1"
+set "MYINI=C:\ProgramData\MySQL\MySQL Server 8.4\my.ini"
+set "SERVICE_NAME=MySQL@8.4"
 
-<!-- <a href="[https://zenn.dev/softoika/scraps/8d361407128904](https://qiita.com/tbpgr/items/989c6badefff69377da7)" target="_blank" rel="noopener noreferrer">Markdown記法 サンプル集</a> -->
+if not exist "%MYINI%" (
+  echo [ERROR] my.ini が見つかりません: %MYINI%
+  exit /b 2
+)
 
-<!--  [GitHubのMarkdon記法のサンプル集2](https://zenn.dev/softoika/scraps/8d361407128904) -->
+echo [STEP] MySQLサービスを停止します...
+net stop "%SERVICE_NAME%"
+if errorlevel 1 (
+  echo [WARN] サービス停止に失敗（すでに停止中かも）。
+)
 
-<a href="https://zenn.dev/softoika/scraps/8d361407128904" target="_blank" rel="noopener noreferrer">GitHubのMarkdon記法のサンプル集2</a>
+:: ---- バックアップ作成 ----
+set "BACKUP=%MYINI%.bak_%DATE:~-4%%DATE:~4,2%%DATE:~7,2%_%TIME:~0,2%%TIME:~3,2%"
+set "BACKUP=%BACKUP: =0%"
+copy "%MYINI%" "%BACKUP%" >nul
+echo [INFO] バックアップ作成: %BACKUP%
 
-[基本情報過去問道場](https://www.fe-siken.com/fekakomon.php)
+:: ---- ポート設定変更（PowerShell使用）----
+echo [STEP] my.ini のポート番号を %NEW_PORT% に変更します...
+powershell -NoProfile -ExecutionPolicy Bypass ^
+  -Command ^
+  "$ini='%MYINI%';" ^
+  "$text=Get-Content -Raw -Encoding UTF8 $ini;" ^
+  "if ($text -match '(?m)^port\s*=\s*\d+') {" ^
+  "  $text -replace '(?m)^port\s*=\s*\d+', 'port=%NEW_PORT%' | Set-Content -Encoding UTF8 $ini" ^
+  "} elseif ($text -match '(?m)^\[mysqld\]') {" ^
+  "  $text -replace '(?m)(^\[mysqld\]\s*)', '`$1`r`nport=%NEW_PORT%`r`n' | Set-Content -Encoding UTF8 $ini" ^
+  "} else {" ^
+  "  Add-Content -Encoding UTF8 $ini '`r`n[mysqld]`r`nport=%NEW_PORT%'" ^
+  "}"
 
-##復習用
+if errorlevel 1 (
+  echo [ERROR] ポート変更に失敗しました。
+  exit /b 3
+)
 
+echo [STEP] MySQLサービスを起動します...
+net start "%SERVICE_NAME%"
+if errorlevel 1 (
+  echo [ERROR] サービス起動に失敗しました。services.msc で確認してください。
+  exit /b 4
+)
 
-[応用情報](https://www.ap-siken.com/)
-
------------------📝----------------
------------------------------------
-
-https://zenn.dev/datchlive/articles/9a8b821fd2486b
-https://qiita.com/inokou/items/fff2917aa0d0963b565b
-
----------------------------------------
----------------------------------------
-## RecursionCSの復習リスト
-## 2025/05/05
-- [タイトル](URL);
-- [文字列の合体](https://recursionist.io/dashboard/problems/221)→理解した
-- [kで割り続ける](https://recursionist.io/dashboard/problems/363) →理解した
-- [整数上の平方根](https://recursionist.io/dashboard/problems/367) →理解した
-- [仮想通貨](https://recursionist.io/dashboard/problems/364) →理解した
-- [3つの最大公約数](https://recursionist.io/dashboard/problems/365) →理解した
-- [数字を分割して足す](https://recursionist.io/dashboard/course/2/lesson/172)  →理解した
-- [正方形の合計枚数](https://recursionist.io/dashboard/course/2/lesson/171)
-- [既約分数](https://recursionist.io/dashboard/problems/366)
-- [共通の接頭辞](https://recursionist.io/dashboard/problems/228)
-- [2の倍数の合計](https://recursionist.io/dashboard/problems/372)
-- [掛け算（再帰）](https://recursionist.io/dashboard/problems/224)
-- [素数（再帰）](https://recursionist.io/dashboard/problems/368)
-- [3で割り続ける](https://recursionist.io/dashboard/course/2/lesson/173)
-- [フィボナッチ数列](https://recursionist.io/dashboard/problems/47)
-- [約数](https://recursionist.io/dashboard/course/2/lesson/174)
-
-
-
----------------------------------------
----------------------------------------
-## RecursionCSのやること
-## 2025/05/05
-1. [購入できる最大のパンの個数](https://recursionist.io/dashboard/problems/232)
-2. [文字列の圧縮](https://recursionist.io/dashboard/problems/227)
-3. [投資の計算](https://recursionist.io/dashboard/course/2/lesson/175)
-4. [数字の分割](https://recursionist.io/dashboard/course/2/lesson/177)
-5. [x になるまでの組み合わせ](https://recursionist.io/dashboard/problems/134)
-6. [ハノイの塔](https://recursionist.io/dashboard/problems/151)
-7. [k番目の要素](https://recursionist.io/dashboard/problems/229)
-8. [タイルの数](https://recursionist.io/dashboard/problems/231)
-
-
-
-   
+echo.
+echo [SUCCESS] MySQL 8.4 のポート番号を %NEW_PORT% に変更し、再起動しました。
+echo [INFO] 接続確認コマンド例: mysql -u root -p -P %NEW_PORT%
+pause
+```
