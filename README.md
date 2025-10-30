@@ -1,3 +1,29 @@
+
+```sql
+UPDATE employees e
+SET 
+  e.salary = (
+    SELECT AVG(e2.salary)
+    FROM employees e2 
+    WHERE e2.department_id = e.department_id
+  ),
+  e.def = (
+    SELECT di.default_value
+    FROM dept_info di
+    WHERE di.department_id = e.department_id
+    LIMIT 1
+  )
+WHERE e.department_id = (
+  SELECT d.id 
+  FROM departments d 
+  WHERE d.code = 'DEV'
+  LIMIT 1
+);
+```
+
+
+
+
 ```cmd
 netsh winhttp show proxy
 ```
