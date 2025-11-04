@@ -1,5 +1,18 @@
 
 ```sql
+
+SELECT
+  CASE
+    WHEN LEFT(col, 1) = '/' THEN NULL
+    ELSE SUBSTRING_INDEX(col, '/', 1)
+  END AS result
+FROM (
+  SELECT 'aaaa/ddddd' AS col
+  UNION ALL
+  SELECT '/aaaaa'
+) t;
+
+
 UPDATE employees e
 SET 
   e.salary = (
