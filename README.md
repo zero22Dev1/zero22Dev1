@@ -2,6 +2,15 @@
 ```sql
 
 SELECT
+    CASE WHEN ROW_NUMBER() OVER (PARTITION BY category ORDER BY value) = 1
+         THEN category
+         ELSE ''
+    END AS category,
+    value
+FROM sample_table
+ORDER BY category, value;
+
+SELECT
   CASE
     WHEN LEFT(col, 1) = '/' THEN NULL
     ELSE SUBSTRING_INDEX(col, '/', 1)
