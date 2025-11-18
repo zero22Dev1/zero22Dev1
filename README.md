@@ -1,6 +1,34 @@
 
 ```sql
 
+
+WITH base AS (
+    -- 明細集計
+    SELECT category, item, SUM(amount) AS total
+    FROM sample_table
+    GROUP BY category, item
+),
+with_summary AS (
+    -- 明細行
+    SELECT category, item, total, 1 AS sort_key
+    FROM base
+
+    UNION ALL
+    -- 小計行
+    SELECT category, '小計', SUM(total), 2 AS sort_key
+    FROM base
+    GROUP BY category
+)
+SELECT
+    CASE WHEN ROW_NUMBER() OVER (PARTITION BY category ORDER BY sort_key, item) = 1
+         THEN category ELSE '' END AS category,
+    item,
+    total
+FROM with_summary
+ORDER BY category, sort_key, item;
+
+
+
 SELECT
     CASE WHEN ROW_NUMBER() OVER (PARTITION BY category ORDER BY value) = 1
          THEN category
