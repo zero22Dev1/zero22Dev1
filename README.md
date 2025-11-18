@@ -28,6 +28,8 @@ FROM with_summary
 ORDER BY category, sort_key, item;
 
 
+---------------------------------------------------------------
+
 
 SELECT
     CASE WHEN ROW_NUMBER() OVER (PARTITION BY category ORDER BY value) = 1
