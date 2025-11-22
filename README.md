@@ -1,6 +1,21 @@
 
 ```sql
 
+START TRANSACTION;
+
+SET @num := 0;
+
+UPDATE your_table_name
+SET id = (@num := @num + 1)
+ORDER BY id;
+
+ALTER TABLE your_table_name AUTO_INCREMENT = 1;
+
+COMMIT;
+
+----------------------  更新
+
+
 
 WITH base AS (
     -- 明細集計
