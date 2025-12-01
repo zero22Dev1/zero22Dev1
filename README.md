@@ -28,14 +28,12 @@ for (Map.Entry<IssueKey, List<TShipment>> e : groupMap.entrySet()) {
     IssueKey key = e.getKey();
     List<TShipment> group = e.getValue();
 
-    // 出荷指示NOまとめ（A001\nA002\n… みたいな感じ）
-    String instructionNoSummary = group.stream()
-            .map(TShipment::getInstructionNo)
-            .filter(Objects::nonNull)
-            .distinct()
-            .sorted()
-            .collect(Collectors.joining("\n"));
-
+String instructionNoSummary = group.stream()
+        .map(TShipment::getInstructionNo)
+        .filter(Objects::nonNull)
+        .distinct()
+        .sorted()
+        .collect(Collectors.joining("\n"));  // ★ 改行区切り
     // 合計重量
     BigDecimal totalWeight = group.stream()
             .map(s -> Optional.ofNullable(s.getWeight()).orElse(BigDecimal.ZERO))
