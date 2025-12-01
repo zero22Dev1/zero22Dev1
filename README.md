@@ -33,7 +33,14 @@ String instructionNoSummary = group.stream()
         .filter(Objects::nonNull)
         .distinct()
         .sorted()
-        .collect(Collectors.joining("\n"));  // ★ 改行区切り
+        .collect(Collectors.joining("\n"));  // ★ 改行区切り　　
+String instructionNoSummary = group.stream()
+    .map(TShipment::getInstructionNo)
+    .filter(Objects::nonNull)
+    .distinct()
+    .sorted()
+    .limit(18)                        // ★ 最大18件に制限
+    .collect(Collectors.joining("\n")); // ★ 改行で並べる
     // 合計重量
     BigDecimal totalWeight = group.stream()
             .map(s -> Optional.ofNullable(s.getWeight()).orElse(BigDecimal.ZERO))
