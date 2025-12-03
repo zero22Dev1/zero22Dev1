@@ -6,6 +6,18 @@ public static String plusDays(String yyyymmdd, String daysStr) {
     return next.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 }
 
+public static String plusDays(String yyyymmdd, String daysStr) {
+    LocalDate date = LocalDate.parse(yyyymmdd, DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+    long days = 0;  // デフォルトは 0 日
+
+    if (daysStr != null && !daysStr.isEmpty()) {
+        days = Long.parseLong(daysStr);  // 数字が入ってる時だけ変換
+    }
+
+    LocalDate next = date.plusDays(days);
+    return next.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+}
 
 // 1. 明細を取得
 List<TShipment> shipList = tShipmentBhv.selectList(cb -> {
