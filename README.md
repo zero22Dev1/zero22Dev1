@@ -1,12 +1,10 @@
 ```java
-
-public static String plusDays(String yyyymmdd, long days) {
+public static String plusDays(String yyyymmdd, String daysStr) {
     LocalDate date = LocalDate.parse(yyyymmdd, DateTimeFormatter.ofPattern("yyyyMMdd"));
+    long days = Long.parseLong(daysStr);  // ← String を long に変換
     LocalDate next = date.plusDays(days);
     return next.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 }
-
-
 
 
 // 1. 明細を取得
