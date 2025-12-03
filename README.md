@@ -1,4 +1,14 @@
 ```java
+
+public static String plusDays(String yyyymmdd, long days) {
+    LocalDate date = LocalDate.parse(yyyymmdd, DateTimeFormatter.ofPattern("yyyyMMdd"));
+    LocalDate next = date.plusDays(days);
+    return next.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+}
+
+
+
+
 // 1. 明細を取得
 List<TShipment> shipList = tShipmentBhv.selectList(cb -> {
     cb.query().setShipDate_GreaterEqual(fromDate);
