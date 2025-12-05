@@ -1,5 +1,39 @@
 ```java
 
+public class IssueKey {
+    private LocalDate shipDate;
+    private LocalDate deliveryDate;
+    private String shipToCd;
+    private String deliveryCd;
+
+    // コンストラクタ
+    public IssueKey(LocalDate shipDate, LocalDate deliveryDate, String shipToCd, String deliveryCd) {
+        this.shipDate = shipDate;
+        this.deliveryDate = deliveryDate;
+        this.shipToCd = shipToCd;
+        this.deliveryCd = deliveryCd;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof IssueKey)) return false;
+        IssueKey key = (IssueKey) o;
+        return Objects.equals(shipDate, key.shipDate) &&
+               Objects.equals(deliveryDate, key.deliveryDate) &&
+               Objects.equals(shipToCd, key.shipToCd) &&
+               Objects.equals(deliveryCd, key.deliveryCd);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(shipDate, deliveryDate, shipToCd, deliveryCd);
+    }
+}
+
+
+
+
 @Data
 @AllArgsConstructor
 public class IssueKey {
