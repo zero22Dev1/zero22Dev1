@@ -1,4 +1,14 @@
 ```java
+
+@Data
+@AllArgsConstructor
+public class IssueKey {
+    private LocalDate shipDate;
+    private LocalDate deliveryDate;
+    private String shipToCd;
+    private String deliveryCd;
+}
+
 public static String plusDays(String yyyymmdd, String daysStr) {
     LocalDate date = LocalDate.parse(yyyymmdd, DateTimeFormatter.ofPattern("yyyyMMdd"));
     long days = Long.parseLong(daysStr);  // ← String を long に変換
