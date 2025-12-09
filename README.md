@@ -1,3 +1,78 @@
+```sql
+-- #df:entity#
+-- !df:pmb!
+-- +cursor+
+
+WITH numbered AS (
+    SELECT
+        deliv_dest_cd,
+        delivery_cd,
+        deliv_date,
+        ship_date,
+        instruction_no,
+        qty,
+        iri_su,
+        weight,
+        ROW_NUMBER() OVER (
+            PARTITION BY deliv_dest_cd, delivery_cd, deliv_date, ship_date
+            ORDER BY instruction_no
+        ) AS rn
+    FROM t_shipment
+    WHERE control_no = /*pmb.controlNo*/0
+)
+
+SELECT
+    deliv_dest_cd  AS delivDestCd,
+    delivery_cd    AS deliveryCd,
+    deliv_date     AS delivDate,
+    ship_date      AS shipDate,
+
+    -- ★ 指示Noを3個ごとに改行
+    GROUP_CONCAT(
+        CASE
+            WHEN rn % 3 = 1 AND rn != 1
+                THEN CONCAT('\n', instruction_no)
+            ELSE instruction_no
+        END
+        ORDER BY rn
+        SEPARATOR ','
+    ) AS instructionNoList,
+
+    -- 個口数：各行ごと「数量 ÷ 入り数」を切り上げ、その合計
+    SUM(
+        CASE
+            WHEN iri_su > 0 THEN CEIL(qty / iri_su)
+            ELSE 0
+        END
+    ) AS totalKoguchi,
+
+    -- 合計重量：各行「入り数 × 重量」の合計
+    SUM(iri_su * weight) AS totalWeight
+
+FROM numbered
+GROUP BY
+    deliv_dest_cd,
+    delivery_cd,
+    deliv_date,
+    ship_date
+
+ORDER BY
+    deliv_dest_cd,
+    delivery_cd,
+    deliv_date,
+    ship_date
+;
+```
+
+
+
+
+
+
+
+
+
+
 ```java
 
 public class IssueKey {
