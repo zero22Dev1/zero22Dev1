@@ -1,4 +1,11 @@
 ```sql
+SHOW VARIABLES LIKE 'wait_timeout';
+SHOW VARIABLES LIKE 'interactive_timeout';
+
+
+
+
+
 -- #df:entity#
 -- !df:pmb!
 -- +cursor+
