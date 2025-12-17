@@ -1,48 +1,4 @@
-$F{shipNo} == null ? $V{v_shipNoIdx} : $V{v_shipNoIdx} + 1
-
-
-
-
-$F{shipNo} == null
-? $V{v_shipNoList}
-: (
-    $V{v_shipNoList} == null
-    ? $F{shipNo}
-    : (
-        $V{v_shipNoIdx} < 18
-          ? $V{v_shipNoList}
-              + ( ($V{v_shipNoIdx} % 6 == 0) ? "\n" : ", " )
-              + $F{shipNo}
-          : $V{v_shipNoList}
-      )
-  )
-
-ここ
-
-
-
-
-
-$F{shipNo} == null
-? $V{v_shipNoList}
-: (
-    $V{v_shipNoList} == null
-    ? $F{shipNo}
-    : (
-        $V{v_shipNoList}.split(",").length < 18
-          ? $V{v_shipNoList}
-              + (
-                  ($V{v_shipNoList}.split(",").length % 6 == 0)
-                    ? "\n"
-                    : ", "
-                )
-              + $F{shipNo}
-          : $V{v_shipNoList}
-      )
-  )
-
-
-
+$F{
 
 ```sql
 SHOW VARIABLES LIKE 'wait_timeout';
@@ -127,6 +83,23 @@ ORDER BY
 
 
 ```java
+public Member selectMemberAddressByCode(String memberCode) {
+    return memberBhv.selectEntity(cb -> {
+        cb.specify().columnMemberName();
+        cb.specify().columnAdd1();
+        cb.specify().columnAdd2();
+        cb.query().setMemberCode_Equal(memberCode);
+    }).orElse(null);
+}
+Member member = selectMemberAddressByCode("A001");
+
+if (member != null) {
+    String name = member.getMemberName();
+    String add1 = member.getAdd1();
+    String add2 = member.getAdd2();
+}
+
+----------------------------------------------------------------------
 
 public class IssueKey {
     private LocalDate shipDate;
