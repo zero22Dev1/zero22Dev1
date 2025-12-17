@@ -1,3 +1,25 @@
+
+$F{shipNo} == null
+? $V{v_shipNoList}
+: (
+    $V{v_shipNoList} == null
+    ? $F{shipNo}
+    : (
+        $V{v_shipNoList}.split(",").length < 18
+          ? $V{v_shipNoList}
+              + (
+                  ($V{v_shipNoList}.split(",").length % 6 == 0)
+                    ? "\n"
+                    : ", "
+                )
+              + $F{shipNo}
+          : $V{v_shipNoList}
+      )
+  )
+
+
+
+
 ```sql
 SHOW VARIABLES LIKE 'wait_timeout';
 SHOW VARIABLES LIKE 'interactive_timeout';
