@@ -1,3 +1,22 @@
+$F{shipNo} == null
+? $V{v_shipNoList}
+: (
+    $V{v_shipNoList} == null
+    ? $F{shipNo}
+    : (
+        $V{v_shipNoIdx} < 18
+          ? $V{v_shipNoList}
+              + ( ($V{v_shipNoIdx} % 6 == 0) ? "\n" : ", " )
+              + $F{shipNo}
+          : $V{v_shipNoList}
+      )
+  )
+
+ここ
+
+
+
+
 
 $F{shipNo} == null
 ? $V{v_shipNoList}
