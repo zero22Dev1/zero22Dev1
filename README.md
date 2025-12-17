@@ -1,3 +1,8 @@
+$F{shipNo} == null ? $V{v_shipNoIdx} : $V{v_shipNoIdx} + 1
+
+
+
+
 $F{shipNo} == null
 ? $V{v_shipNoList}
 : (
