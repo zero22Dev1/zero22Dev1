@@ -1,6 +1,39 @@
 
 
 ```sql
+
+WITH base AS (
+  SELECT
+    pk_class,
+    consumer_name,
+    product_cd,
+    ROW_NUMBER() OVER (
+      PARTITION BY pk_class
+      ORDER BY product_cd  -- ← 明細の並び順（必要に応じて変更）
+    ) AS rn
+  FROM src
+)
+SELECT
+  999 AS item1,
+  /* ヘッダ行の項目2/3：そのPK_CLASS内の先頭行の値を採用する例 */
+  MAX(consumer_name) KEEP (DENSE_RANK FIRST ORDER BY rn) AS item2,
+  MAX(product_cd)    KEEP (DENSE_RANK FIRST ORDER BY rn) AS item3
+FROM base
+GROUP BY pk_class
+
+UNION ALL
+
+SELECT
+  rn   AS item1,
+  consumer_name AS item2,
+  product_cd    AS item3
+FROM base
+
+ORDER BY
+  pk_class,
+  CASE WHEN item1 = 999 THEN 0 ELSE 1 END,
+  item1;
+
 COUNT(CASE WHEN p.product_name = 'jiniA' THEN 1 END) AS package_a_count,
 COUNT(CASE WHEN p.product_name = 'jiniB' THEN 1 END) AS package_b_count
 
