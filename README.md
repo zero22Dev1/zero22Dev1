@@ -1,4 +1,5 @@
-'''bat
+
+```bat
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
@@ -63,4 +64,4 @@ for %%F in (%*) do (
 pause
 exit /b 0
 
-'''
+```
