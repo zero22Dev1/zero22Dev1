@@ -1,3 +1,4 @@
+
 Sub ExportCSV_SJIS()
     Dim stream As Object
     Set stream = CreateObject("ADODB.Stream")
