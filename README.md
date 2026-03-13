@@ -1,3 +1,44 @@
+Sub ExportCSV_SJIS()
+    Dim stream As Object
+    Set stream = CreateObject("ADODB.Stream")
+    
+    stream.Type = 2
+    stream.Charset = "Shift_JIS"
+    stream.Open
+    
+    Dim ws As Worksheet
+    Set ws = Sheets("Sheet1")  ' ← シート名を変更してください
+    
+    Dim lastRow As Long
+    Dim lastCol As Long
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+    
+    Dim i As Long, j As Long
+    For i = 1 To lastRow
+        Dim cols() As String
+        ReDim cols(lastCol - 1)
+        
+        For j = 1 To lastCol
+            cols(j - 1) = CStr(ws.Cells(i, j).Value)
+        Next j
+        
+        stream.WriteText Join(cols, ",") & vbCrLf
+    Next i
+    
+    stream.SaveToFile "C:\output\data.csv", 2
+    stream.Close
+    Set stream = Nothing
+    
+    MsgBox "CSV出力完了"
+End Sub
+
+
+
+
+
+
+
 ```bat
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
