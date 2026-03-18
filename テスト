@@ -1,8 +1,8 @@
 @echo off
-if not exist “%~dp0mysql_import.dat” (
-echo [ERROR] mysql_import.dat が見つかりません。
+if not exist “%~dp0mysql_export_truncate.dat” (
+echo [ERROR] mysql_export_truncate.dat が見つかりません。
 echo         同じフォルダに配置してください。
 pause
 exit /b 1
 )
-cmd /c “%~dp0mysql_import.dat”
+cmd /c “%~dp0mysql_export_truncate.dat”
