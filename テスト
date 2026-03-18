@@ -1,5 +1,260 @@
 @echo off
-cmd /c “%~dp0mysql_import.dat”
+setlocal enabledelayedexpansion
 
-@echo off
-cmd /c “%~dp0mysql_export_truncate.dat”
+REM ============================================================
+REM ログファイル設定
+REM ============================================================
+set LOG_DIR=%~dp0logs
+if not exist “%LOG_DIR%” mkdir “%LOG_DIR%”
+set LOG_FILE=%LOG_DIR%\import_%DATE:~0,4%%DATE:~5,2%%DATE:~8,2%_%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%.log
+set LOG_FILE=%LOG_FILE: =0%
+
+REM ============================================================
+REM 起動時に eula の値を読み込み、即 false にリセット
+REM ============================================================
+set AGREEMENT_FILE=%~dp0eula_import.txt
+set AGREED=false
+if exist “!AGREEMENT_FILE!” (
+for /f “tokens=1,2 delims==” %%A in (‘findstr /i “eula” “!AGREEMENT_FILE!”’) do (
+if /i “%%B”==“true” set AGREED=true
+)
+powershell -Command “(Get-Content ‘!AGREEMENT_FILE!’) -replace ‘eula=true’, ‘eula=false’ | Set-Content ‘!AGREEMENT_FILE!’”
+)
+
+echo ======================================================== | tee “%LOG_FILE%”
+echo  MySQL インポートツール                                  | tee -a “%LOG_FILE%”
+echo ======================================================== | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+
+REM ============================================================
+REM パラメータ入力（必須チェックあり）
+REM ============================================================
+:INPUT_DB_HOST
+set /p DB_HOST=“DBホスト名を入力してください (例: localhost): “
+if “!DB_HOST!”==”” ( echo [ERROR] DBホスト名は必須です。 & goto INPUT_DB_HOST )
+
+:INPUT_DB_PORT
+set /p DB_PORT=“DBポートを入力してください (例: 3306): “
+if “!DB_PORT!”==”” ( echo [ERROR] DBポートは必須です。 & goto INPUT_DB_PORT )
+echo !DB_PORT!| findstr /r “^[0-9]*$” >nul 2>&1
+if not %ERRORLEVEL%==0 ( echo [ERROR] DBポートは数字で入力してください。 & goto INPUT_DB_PORT )
+
+:INPUT_DB_USER
+set /p DB_USER=“DBユーザー名を入力してください: “
+if “!DB_USER!”==”” ( echo [ERROR] DBユーザー名は必須です。 & goto INPUT_DB_USER )
+
+:INPUT_DB_NAME
+set /p DB_NAME=“DB名を入力してください: “
+if “!DB_NAME!”==”” ( echo [ERROR] DB名は必須です。 & goto INPUT_DB_NAME )
+
+:INPUT_DB_PASS
+set /p DB_PASS=“DBパスワードを入力してください: “
+if “!DB_PASS!”==”” ( echo [ERROR] DBパスワードは必須です。 & goto INPUT_DB_PASS )
+
+:INPUT_IMPORT_FILE
+set /p IMPORT_FILE=“インポートするSQLファイルパスを入力してください (例: C:\data\import.sql): “
+if “!IMPORT_FILE!”==”” ( echo [ERROR] SQLファイルパスは必須です。 & goto INPUT_IMPORT_FILE )
+if not exist “!IMPORT_FILE!” ( echo [ERROR] ファイルが見つかりません: !IMPORT_FILE! & goto INPUT_IMPORT_FILE )
+
+echo. | tee -a “%LOG_FILE%”
+echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
+echo  入力内容の確認                                          | tee -a “%LOG_FILE%”
+echo  DB_HOST    : %DB_HOST%                                  | tee -a “%LOG_FILE%”
+echo  DB_PORT    : %DB_PORT%                                  | tee -a “%LOG_FILE%”
+echo  DB_USER    : %DB_USER%                                  | tee -a “%LOG_FILE%”
+echo  DB_NAME    : %DB_NAME%                                  | tee -a “%LOG_FILE%”
+echo  IMPORT_FILE: %IMPORT_FILE%                              | tee -a “%LOG_FILE%”
+echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+echo [INFO] MySQL接続を確認しています… | tee -a “%LOG_FILE%”
+echo [INFO]   接続先: %DB_HOST%:%DB_PORT% | tee -a “%LOG_FILE%”
+echo [INFO]   ユーザー: %DB_USER% | tee -a “%LOG_FILE%”
+echo [INFO]   DB名: %DB_NAME% | tee -a “%LOG_FILE%”
+mysql -h %DB_HOST% -P %DB_PORT% -u %DB_USER% -p%DB_PASS% -e “SELECT 1;” %DB_NAME% >”%TEMP%\mysql_err.tmp” 2>&1
+
+if not %ERRORLEVEL%==0 (
+echo. | tee -a “%LOG_FILE%”
+echo [ERROR] MySQLへの接続に失敗しました。 | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+echo [ERROR] 考えられる原因: | tee -a “%LOG_FILE%”
+for /f “delims=” %%E in (%TEMP%\mysql_err.tmp) do (
+echo         %%E | tee -a “%LOG_FILE%”
+)
+echo. | tee -a “%LOG_FILE%”
+echo [HINT] 以下を確認してください: | tee -a “%LOG_FILE%”
+echo         - DBホスト名・IPアドレスが正しいか | tee -a “%LOG_FILE%”
+echo         - ポート番号が正しいか (デフォルト: 3306) | tee -a “%LOG_FILE%”
+echo         - ユーザー名・パスワードが正しいか | tee -a “%LOG_FILE%”
+echo         - DB名が存在するか | tee -a “%LOG_FILE%”
+echo         - MySQLサーバーが起動しているか | tee -a “%LOG_FILE%”
+echo         - ファイアウォールでポートが開放されているか | tee -a “%LOG_FILE%”
+echo [INFO] ログ: %LOG_FILE%
+pause
+exit /b 1
+)
+echo [INFO] 接続確認OK: %DB_HOST%:%DB_PORT% / %DB_NAME% | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+
+REM ============================================================
+REM 本番環境チェック（DB_HOST が localhost 以外 = 本番とみなす）
+REM ============================================================
+if /i not “%DB_HOST%”==“localhost” (
+echo ======================================================== | tee -a “%LOG_FILE%”
+echo  [警告] 本番環境への接続が検出されました               | tee -a “%LOG_FILE%”
+echo  DB_HOST  : %DB_HOST%                                   | tee -a “%LOG_FILE%”
+echo  対象DB   : %DB_NAME%                                   | tee -a “%LOG_FILE%”
+echo  ファイル : %IMPORT_FILE%                               | tee -a “%LOG_FILE%”
+echo ======================================================== | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+
+```
+REM eula_import.txt の確認・自動再生成
+if not exist "!AGREEMENT_FILE!" (
+    echo [WARN] eula_import.txt が見つかりません。自動再生成します... | tee -a "%LOG_FILE%"
+    (
+        echo #================================================================
+        echo # 本番環境インポート実行 利用規約
+        echo # MySQL Import Tool - Production Agreement
+        echo #================================================================
+        echo #
+        echo # 本番環境でのデータインポートを実行する前に、
+        echo # 以下の注意事項をよく読み、理解した上で同意してください。
+        echo #
+        echo # 【注意事項】
+        echo #
+        echo # 1. データの不可逆性
+        echo #    インポートによって既存データが変更・削除される場合があります。
+        echo #    実行前に必ずバックアップを取得してください。
+        echo #
+        echo # 2. 実行責任
+        echo #    本ツールの実行による影響（データ破損・サービス停止等）について、
+        echo #    実行者が責任を負うものとします。
+        echo #
+        echo # 3. 事前確認
+        echo #    以下をすべて確認してから実行してください。
+        echo #    - インポートファイルの内容を確認済みであること
+        echo #    - 対象DBのバックアップを取得済みであること
+        echo #    - 実行時間帯がサービスへの影響が少ない時間であること
+        echo #    - 関係者への事前連絡が完了していること
+        echo #
+        echo # 4. ログの保存
+        echo #    実行結果のログを必ず保存し、問題発生時に追跡できるようにしてください。
+        echo #
+        echo #================================================================
+        echo # 上記の注意事項を読み、すべてに同意する場合は
+        echo # 下記の値を false から true に変更してください。
+        echo #================================================================
+        echo.
+        echo eula=false
+    ) > "!AGREEMENT_FILE!"
+    echo [INFO] eula_import.txt を再生成しました: !AGREEMENT_FILE! | tee -a "%LOG_FILE%"
+    echo. | tee -a "%LOG_FILE%"
+    echo  内容を確認の上、eula=true に変更してから再実行してください。
+    echo.
+    echo [INFO] ログ: %LOG_FILE%
+    pause
+    exit /b 1
+)
+
+REM 起動時に読み込んだ変数で同意チェック
+if /i not "!AGREED!"=="true" (
+    echo [ERROR] 本番実行の利用規約に同意されていません。 | tee -a "%LOG_FILE%"
+    echo. | tee -a "%LOG_FILE%"
+    echo  eula_import.txt を開き、内容をよく読んだ上で
+    echo  以下の行を変更してから再実行してください。
+    echo.
+    echo    変更前: eula=false
+    echo    変更後: eula=true
+    echo.
+    echo [INFO] ログ: %LOG_FILE%
+    pause
+    exit /b 1
+)
+
+echo [INFO] 利用規約への同意を確認しました。 | tee -a "%LOG_FILE%"
+echo. | tee -a "%LOG_FILE%"
+
+REM 本番環境への最終警告確認
+echo ======================================================== | tee -a "%LOG_FILE%"
+echo  [最終警告] 本番環境へのインポートを実行しようとしています | tee -a "%LOG_FILE%"
+echo  この操作は取り消せない場合があります。                  | tee -a "%LOG_FILE%"
+echo  本番DBへの影響を十分に理解した上で実行してください。    | tee -a "%LOG_FILE%"
+echo ======================================================== | tee -a "%LOG_FILE%"
+echo. | tee -a "%LOG_FILE%"
+set /p PROD_CONFIRM="本番環境で実行しますか？ (EXECUTE/NO): "
+if not "!PROD_CONFIRM!"=="EXECUTE" (
+    echo [INFO] 処理を中止しました。 | tee -a "%LOG_FILE%"
+    pause
+    exit /b 1
+)
+echo. | tee -a "%LOG_FILE%"
+```
+
+)
+
+REM ============================================================
+REM INSERT INTO の存在チェック
+REM ============================================================
+findstr /i “INSERT INTO” “%IMPORT_FILE%” >nul 2>&1
+if %ERRORLEVEL%==1 (
+echo. | tee -a “%LOG_FILE%”
+echo [ERROR] SQLファイルに INSERT INTO が見つかりませんでした。 | tee -a “%LOG_FILE%”
+echo         ファイルの内容を確認してください: %IMPORT_FILE% | tee -a “%LOG_FILE%”
+echo [INFO] ログ: %LOG_FILE%
+pause
+exit /b 1
+)
+
+REM ============================================================
+REM インポート実行確認
+REM ============================================================
+echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
+echo  以下の内容でインポートを実行します                      | tee -a “%LOG_FILE%”
+echo  DB_HOST    : %DB_HOST%                                  | tee -a “%LOG_FILE%”
+echo  DB_PORT    : %DB_PORT%                                  | tee -a “%LOG_FILE%”
+echo  DB_USER    : %DB_USER%                                  | tee -a “%LOG_FILE%”
+echo  DB_NAME    : %DB_NAME%                                  | tee -a “%LOG_FILE%”
+echo  IMPORT_FILE: %IMPORT_FILE%                              | tee -a “%LOG_FILE%”
+echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+set /p EXEC_CONFIRM=“インポートを実行しますか？ (EXECUTE/NO): “
+if not “!EXEC_CONFIRM!”==“EXECUTE” (
+echo [INFO] 処理を中止しました。 | tee -a “%LOG_FILE%”
+pause
+exit /b 1
+)
+echo. | tee -a “%LOG_FILE%”
+
+REM ============================================================
+REM MySQLインポート実行
+REM ============================================================
+echo [INFO] インポート開始: %DATE% %TIME% | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+
+REM テーブルごとに start / end を表示
+for /f “tokens=3 delims= “ %%T in (‘findstr /i “INSERT INTO” “%IMPORT_FILE%”’) do (
+set TABLE=%%T
+set TABLE=!TABLE:(=!
+echo [INSERT] !TABLE! start | tee -a “%LOG_FILE%”
+echo [INSERT] !TABLE! end | tee -a “%LOG_FILE%”
+)
+
+mysql -h %DB_HOST% -P %DB_PORT% -u %DB_USER% -p%DB_PASS% %DB_NAME% < %IMPORT_FILE% >> “%LOG_FILE%” 2>&1
+
+if %ERRORLEVEL%==0 (
+echo. | tee -a “%LOG_FILE%”
+echo [INFO] インポートが完了しました！: %DATE% %TIME% | tee -a “%LOG_FILE%”
+echo [INFO] ログ: %LOG_FILE% | tee -a “%LOG_FILE%”
+echo.
+pause
+) else (
+echo. | tee -a “%LOG_FILE%”
+echo [ERROR] インポートに失敗しました。終了コード: %ERRORLEVEL% | tee -a “%LOG_FILE%”
+echo [INFO] ログ: %LOG_FILE%
+pause
+exit /b %ERRORLEVEL%
+)
+
+endlocal
