@@ -6,13 +6,13 @@ REM ログファイル設定
 REM ============================================================
 set LOG_DIR=%~dp0logs
 if not exist “%LOG_DIR%” mkdir “%LOG_DIR%”
-set LOG_FILE=%LOG_DIR%\import_%DATE:~0,4%%DATE:~5,2%%DATE:~8,2%_%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%.log
+set LOG_FILE=%LOG_DIR%\export_truncate_%DATE:~0,4%%DATE:~5,2%%DATE:~8,2%_%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%.log
 set LOG_FILE=%LOG_FILE: =0%
 
 REM ============================================================
 REM 起動時に eula の値を読み込み、即 false にリセット
 REM ============================================================
-set AGREEMENT_FILE=%~dp0eula_import.txt
+set AGREEMENT_FILE=%~dp0eula_export.txt
 set AGREED=false
 if exist “!AGREEMENT_FILE!” (
 for /f “tokens=1,2 delims==” %%A in (‘findstr /i “eula” “!AGREEMENT_FILE!”’) do (
@@ -22,7 +22,7 @@ powershell -Command “(Get-Content ‘!AGREEMENT_FILE!’) -replace ‘eula=tru
 )
 
 echo ======================================================== | tee “%LOG_FILE%”
-echo  MySQL インポートツール                                  | tee -a “%LOG_FILE%”
+echo  MySQL エクスポート & トランケートツール                  | tee -a “%LOG_FILE%”
 echo ======================================================== | tee -a “%LOG_FILE%”
 echo. | tee -a “%LOG_FILE%”
 
@@ -51,23 +51,62 @@ if “!DB_NAME!”==”” ( echo [ERROR] DB名は必須です。 & goto INPUT_D
 set /p DB_PASS=“DBパスワードを入力してください: “
 if “!DB_PASS!”==”” ( echo [ERROR] DBパスワードは必須です。 & goto INPUT_DB_PASS )
 
-:INPUT_IMPORT_FILE
-set /p IMPORT_FILE=“インポートするSQLファイルパスを入力してください (例: C:\data\import.sql): “
-if “!IMPORT_FILE!”==”” ( echo [ERROR] SQLファイルパスは必須です。 & goto INPUT_IMPORT_FILE )
-if not exist “!IMPORT_FILE!” ( echo [ERROR] ファイルが見つかりません: !IMPORT_FILE! & goto INPUT_IMPORT_FILE )
+REM ============================================================
+REM tables.txt からテーブルリスト読み込み
+REM ============================================================
+set TABLES_FILE=%~dp0tables.txt
+if not exist “!TABLES_FILE!” (
+echo [ERROR] tables.txt が見つかりません。 | tee -a “%LOG_FILE%”
+echo         バッチと同じフォルダに配置してください。 | tee -a “%LOG_FILE%”
+pause
+exit /b 1
+)
+
+set TABLE_LIST_SPACE=
+for /f “eol=# tokens=*” %%T in (!TABLES_FILE!) do (
+set TABLE_LIST_SPACE=!TABLE_LIST_SPACE! %%T
+)
+set TABLE_LIST_SPACE=%TABLE_LIST_SPACE:~1%
+
+if “!TABLE_LIST_SPACE!”==”” (
+echo [ERROR] tables.txt にテーブル名が1件も記載されていません。 | tee -a “%LOG_FILE%”
+pause
+exit /b 1
+)
+
+echo [INFO] テーブルリスト読み込み完了: !TABLE_LIST_SPACE! | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+
+:INPUT_EXPORT_DIR
+set /p EXPORT_DIR=“エクスポート先フォルダを入力してください (例: C:\backup): “
+if “!EXPORT_DIR!”==”” ( echo [ERROR] エクスポート先フォルダは必須です。 & goto INPUT_EXPORT_DIR )
+if not exist “!EXPORT_DIR!” (
+echo [INFO] フォルダが存在しないため作成します: !EXPORT_DIR!
+mkdir “!EXPORT_DIR!”
+)
+
+REM 日時フォルダを作成（スキーマ名_yyyymmddhhmmss形式）
+set TIMESTAMP=%DATE:~0,4%%DATE:~5,2%%DATE:~8,2%%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%
+set TIMESTAMP=%TIMESTAMP: =0%
+set EXPORT_SUBDIR=%EXPORT_DIR%%DB_NAME%_%TIMESTAMP%
+mkdir “%EXPORT_SUBDIR%”
+echo [INFO] エクスポートフォルダ作成: %EXPORT_SUBDIR%
 
 echo. | tee -a “%LOG_FILE%”
 echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
 echo  入力内容の確認                                          | tee -a “%LOG_FILE%”
-echo  DB_HOST    : %DB_HOST%                                  | tee -a “%LOG_FILE%”
-echo  DB_PORT    : %DB_PORT%                                  | tee -a “%LOG_FILE%”
-echo  DB_USER    : %DB_USER%                                  | tee -a “%LOG_FILE%”
-echo  DB_NAME    : %DB_NAME%                                  | tee -a “%LOG_FILE%”
-echo  IMPORT_FILE: %IMPORT_FILE%                              | tee -a “%LOG_FILE%”
+echo  DB_HOST     : %DB_HOST%                                 | tee -a “%LOG_FILE%”
+echo  DB_PORT     : %DB_PORT%                                 | tee -a “%LOG_FILE%”
+echo  DB_USER     : %DB_USER%                                 | tee -a “%LOG_FILE%”
+echo  DB_NAME     : %DB_NAME%                                 | tee -a “%LOG_FILE%”
+echo  対象テーブル: %TABLE_LIST_SPACE%                              | tee -a “%LOG_FILE%”
+echo  EXPORT_FILE : %EXPORT_FILE%                             | tee -a “%LOG_FILE%”
 echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
 echo. | tee -a “%LOG_FILE%”
-echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
-echo. | tee -a “%LOG_FILE%”
+
+REM ============================================================
+REM MySQL接続確認
+REM ============================================================
 echo [INFO] MySQL接続を確認しています… | tee -a “%LOG_FILE%”
 echo [INFO]   接続先: %DB_HOST%:%DB_PORT% | tee -a “%LOG_FILE%”
 echo [INFO]   ユーザー: %DB_USER% | tee -a “%LOG_FILE%”
@@ -103,39 +142,39 @@ REM ============================================================
 if /i not “%DB_HOST%”==“localhost” (
 echo ======================================================== | tee -a “%LOG_FILE%”
 echo  [警告] 本番環境への接続が検出されました               | tee -a “%LOG_FILE%”
-echo  DB_HOST  : %DB_HOST%                                   | tee -a “%LOG_FILE%”
-echo  対象DB   : %DB_NAME%                                   | tee -a “%LOG_FILE%”
-echo  ファイル : %IMPORT_FILE%                               | tee -a “%LOG_FILE%”
+echo  DB_HOST     : %DB_HOST%                                | tee -a “%LOG_FILE%”
+echo  対象DB      : %DB_NAME%                                | tee -a “%LOG_FILE%”
+echo  対象テーブル: %TABLE_LIST_SPACE%                             | tee -a “%LOG_FILE%”
 echo ======================================================== | tee -a “%LOG_FILE%”
 echo. | tee -a “%LOG_FILE%”
 
 ```
-REM eula_import.txt の確認・自動再生成
+REM eula_export.txt の確認・自動再生成
 if not exist "!AGREEMENT_FILE!" (
-    echo [WARN] eula_import.txt が見つかりません。自動再生成します... | tee -a "%LOG_FILE%"
+    echo [WARN] eula_export.txt が見つかりません。自動再生成します... | tee -a "%LOG_FILE%"
     (
         echo #================================================================
-        echo # 本番環境インポート実行 利用規約
-        echo # MySQL Import Tool - Production Agreement
+        echo # 本番環境エクスポート ^& トランケート実行 利用規約
+        echo # MySQL Export ^& Truncate Tool - Production Agreement
         echo #================================================================
         echo #
-        echo # 本番環境でのデータインポートを実行する前に、
+        echo # 本番環境でのトランケートを実行する前に、
         echo # 以下の注意事項をよく読み、理解した上で同意してください。
         echo #
         echo # 【注意事項】
         echo #
         echo # 1. データの不可逆性
-        echo #    インポートによって既存データが変更・削除される場合があります。
-        echo #    実行前に必ずバックアップを取得してください。
+        echo #    TRUNCATEによってテーブルの全データが削除されます。
+        echo #    必ずエクスポートによるバックアップを確認してから進めてください。
         echo #
         echo # 2. 実行責任
-        echo #    本ツールの実行による影響（データ破損・サービス停止等）について、
+        echo #    本ツールの実行による影響（データ消失・サービス停止等）について、
         echo #    実行者が責任を負うものとします。
         echo #
         echo # 3. 事前確認
         echo #    以下をすべて確認してから実行してください。
-        echo #    - インポートファイルの内容を確認済みであること
-        echo #    - 対象DBのバックアップを取得済みであること
+        echo #    - トランケート対象テーブルが正しいこと
+        echo #    - エクスポートファイルが正常に生成されたこと
         echo #    - 実行時間帯がサービスへの影響が少ない時間であること
         echo #    - 関係者への事前連絡が完了していること
         echo #
@@ -149,7 +188,7 @@ if not exist "!AGREEMENT_FILE!" (
         echo.
         echo eula=false
     ) > "!AGREEMENT_FILE!"
-    echo [INFO] eula_import.txt を再生成しました: !AGREEMENT_FILE! | tee -a "%LOG_FILE%"
+    echo [INFO] eula_export.txt を再生成しました: !AGREEMENT_FILE! | tee -a "%LOG_FILE%"
     echo. | tee -a "%LOG_FILE%"
     echo  内容を確認の上、eula=true に変更してから再実行してください。
     echo.
@@ -162,7 +201,7 @@ REM 起動時に読み込んだ変数で同意チェック
 if /i not "!AGREED!"=="true" (
     echo [ERROR] 本番実行の利用規約に同意されていません。 | tee -a "%LOG_FILE%"
     echo. | tee -a "%LOG_FILE%"
-    echo  eula_import.txt を開き、内容をよく読んだ上で
+    echo  eula_export.txt を開き、内容をよく読んだ上で
     echo  以下の行を変更してから再実行してください。
     echo.
     echo    変更前: eula=false
@@ -178,8 +217,8 @@ echo. | tee -a "%LOG_FILE%"
 
 REM 本番環境への最終警告確認
 echo ======================================================== | tee -a "%LOG_FILE%"
-echo  [最終警告] 本番環境へのインポートを実行しようとしています | tee -a "%LOG_FILE%"
-echo  この操作は取り消せない場合があります。                  | tee -a "%LOG_FILE%"
+echo  [最終警告] 本番環境のトランケートを実行しようとしています | tee -a "%LOG_FILE%"
+echo  この操作は取り消せません。対象テーブルの全データが削除されます。 | tee -a "%LOG_FILE%"
 echo  本番DBへの影響を十分に理解した上で実行してください。    | tee -a "%LOG_FILE%"
 echo ======================================================== | tee -a "%LOG_FILE%"
 echo. | tee -a "%LOG_FILE%"
@@ -195,32 +234,46 @@ echo. | tee -a "%LOG_FILE%"
 )
 
 REM ============================================================
-REM INSERT INTO の存在チェック
+REM テーブル存在チェック
 REM ============================================================
-findstr /i “INSERT INTO” “%IMPORT_FILE%” >nul 2>&1
-if %ERRORLEVEL%==1 (
+echo [INFO] テーブルの存在を確認しています… | tee -a “%LOG_FILE%”
+set TABLE_CHECK_ERROR=false
+for %%T in (%TABLE_LIST_SPACE%) do (
+mysql -h %DB_HOST% -P %DB_PORT% -u %DB_USER% -p%DB_PASS% -e “SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ‘%DB_NAME%’ AND TABLE_NAME = ‘%%T’;” 2>nul | findstr /r “^[1-9]” >nul 2>&1
+if not %ERRORLEVEL%==0 (
+echo [ERROR] テーブルが存在しません: %%T | tee -a “%LOG_FILE%”
+set TABLE_CHECK_ERROR=true
+)
+)
+if “!TABLE_CHECK_ERROR!”==“true” (
 echo. | tee -a “%LOG_FILE%”
-echo [ERROR] SQLファイルに INSERT INTO が見つかりませんでした。 | tee -a “%LOG_FILE%”
-echo         ファイルの内容を確認してください: %IMPORT_FILE% | tee -a “%LOG_FILE%”
+echo [ERROR] 存在しないテーブルがあります。tables.txt の内容を確認してください。 | tee -a “%LOG_FILE%”
 echo [INFO] ログ: %LOG_FILE%
 pause
 exit /b 1
 )
+echo [INFO] テーブル存在確認OK | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
 
 REM ============================================================
-REM インポート実行確認
+REM エクスポート実行確認（テーブルごとのファイルパス表示）
 REM ============================================================
 echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
-echo  以下の内容でインポートを実行します                      | tee -a “%LOG_FILE%”
-echo  DB_HOST    : %DB_HOST%                                  | tee -a “%LOG_FILE%”
-echo  DB_PORT    : %DB_PORT%                                  | tee -a “%LOG_FILE%”
-echo  DB_USER    : %DB_USER%                                  | tee -a “%LOG_FILE%”
-echo  DB_NAME    : %DB_NAME%                                  | tee -a “%LOG_FILE%”
-echo  IMPORT_FILE: %IMPORT_FILE%                              | tee -a “%LOG_FILE%”
+echo  以下の内容でエクスポートを実行します                    | tee -a “%LOG_FILE%”
+echo  DB_HOST     : %DB_HOST%                                 | tee -a “%LOG_FILE%”
+echo  DB_PORT     : %DB_PORT%                                 | tee -a “%LOG_FILE%”
+echo  DB_USER     : %DB_USER%                                 | tee -a “%LOG_FILE%”
+echo  DB_NAME     : %DB_NAME%                                 | tee -a “%LOG_FILE%”
+echo  出力先フォルダ: %EXPORT_SUBDIR%                         | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+echo  [取得ファイル一覧]                                      | tee -a “%LOG_FILE%”
+for %%T in (%TABLE_LIST_SPACE%) do (
+echo    %%T : %EXPORT_SUBDIR%\export_%%T.sql | tee -a “%LOG_FILE%”
+)
 echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
 echo. | tee -a “%LOG_FILE%”
-set /p EXEC_CONFIRM=“インポートを実行しますか？ (EXECUTE/NO): “
-if not “!EXEC_CONFIRM!”==“EXECUTE” (
+set /p EXPORT_CONFIRM=“エクスポートを実行しますか？ (EXECUTE/NO): “
+if not “!EXPORT_CONFIRM!”==“EXECUTE” (
 echo [INFO] 処理を中止しました。 | tee -a “%LOG_FILE%”
 pause
 exit /b 1
@@ -228,33 +281,104 @@ exit /b 1
 echo. | tee -a “%LOG_FILE%”
 
 REM ============================================================
-REM MySQLインポート実行
+REM エクスポート実行（テーブルごとに個別ファイル）
 REM ============================================================
-echo [INFO] インポート開始: %DATE% %TIME% | tee -a “%LOG_FILE%”
+echo [INFO] エクスポート実行開始: %DATE% %TIME% | tee -a “%LOG_FILE%”
 echo. | tee -a “%LOG_FILE%”
 
-REM テーブルごとに start / end を表示
-for /f “tokens=3 delims= “ %%T in (‘findstr /i “INSERT INTO” “%IMPORT_FILE%”’) do (
-set TABLE=%%T
-set TABLE=!TABLE:(=!
-echo [INSERT] !TABLE! start | tee -a “%LOG_FILE%”
-echo [INSERT] !TABLE! end | tee -a “%LOG_FILE%”
+for %%T in (%TABLE_LIST_SPACE%) do (
+set EACH_FILE=%EXPORT_SUBDIR%\export_%%T.sql
+echo [EXPORT] %%T start | tee -a “%LOG_FILE%”
+mysqldump -h %DB_HOST% -P %DB_PORT% -u %DB_USER% -p%DB_PASS% %DB_NAME% %%T >> “!EACH_FILE!” 2>> “%LOG_FILE%”
+if not %ERRORLEVEL%==0 (
+echo [ERROR] %%T のエクスポートに失敗しました。 | tee -a “%LOG_FILE%”
+echo [INFO] ログ: %LOG_FILE%
+pause
+exit /b 1
+)
+echo [INFO] 出力先: !EACH_FILE! | tee -a “%LOG_FILE%”
+echo [EXPORT] %%T end | tee -a “%LOG_FILE%”
+echo [INFO] %%T のエクスポートが完了しました！ | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
 )
 
-mysql -h %DB_HOST% -P %DB_PORT% -u %DB_USER% -p%DB_PASS% %DB_NAME% < %IMPORT_FILE% >> “%LOG_FILE%” 2>&1
-
-if %ERRORLEVEL%==0 (
 echo. | tee -a “%LOG_FILE%”
-echo [INFO] インポートが完了しました！: %DATE% %TIME% | tee -a “%LOG_FILE%”
+echo [INFO] エクスポート完了: %DATE% %TIME% | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+
+REM ============================================================
+REM トランケート実行確認
+REM ============================================================
+echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
+echo  以下の内容でトランケートを実行します                    | tee -a “%LOG_FILE%”
+echo  DB_HOST     : %DB_HOST%                                 | tee -a “%LOG_FILE%”
+echo  DB_PORT     : %DB_PORT%                                 | tee -a “%LOG_FILE%”
+echo  DB_USER     : %DB_USER%                                 | tee -a “%LOG_FILE%”
+echo  DB_NAME     : %DB_NAME%                                 | tee -a “%LOG_FILE%”
+echo  対象テーブル: %TABLE_LIST_SPACE%                        | tee -a “%LOG_FILE%”
+echo –––––––––––––––––––––––––––– | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+set /p TRUNCATE_CONFIRM=“トランケートを実行しますか？ (EXECUTE/NO): “
+if not “!TRUNCATE_CONFIRM!”==“EXECUTE” (
+echo [INFO] 処理を中止しました。 | tee -a “%LOG_FILE%”
+pause
+exit /b 1
+)
+echo. | tee -a “%LOG_FILE%”
+
+REM ============================================================
+REM トランケート実行
+REM ============================================================
+echo [INFO] トランケート実行開始: %DATE% %TIME% | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+
+REM 外部キー制約を一時無効化
+echo [INFO] 外部キー制約を無効化しています… | tee -a “%LOG_FILE%”
+mysql -h %DB_HOST% -P %DB_PORT% -u %DB_USER% -p%DB_PASS% -e “SET FOREIGN_KEY_CHECKS=0;” %DB_NAME% >> “%LOG_FILE%” 2>&1
+if not %ERRORLEVEL%==0 (
+echo [ERROR] 外部キー制約の無効化に失敗しました。 | tee -a “%LOG_FILE%”
+echo [INFO] ログ: %LOG_FILE%
+pause
+exit /b 1
+)
+echo [INFO] 外部キー制約を無効化しました。 | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+
+for %%T in (%TABLE_LIST_SPACE%) do (
+echo [TRUNCATE] %%T start | tee -a “%LOG_FILE%”
+mysql -h %DB_HOST% -P %DB_PORT% -u %DB_USER% -p%DB_PASS% -e “TRUNCATE TABLE %%T;” %DB_NAME% >> “%LOG_FILE%” 2>&1
+if not %ERRORLEVEL%==0 (
+echo [ERROR] %%T のトランケートに失敗しました。 | tee -a “%LOG_FILE%”
+echo [INFO] 外部キー制約を有効化して終了します… | tee -a “%LOG_FILE%”
+mysql -h %DB_HOST% -P %DB_PORT% -u %DB_USER% -p%DB_PASS% -e “SET FOREIGN_KEY_CHECKS=1;” %DB_NAME% >> “%LOG_FILE%” 2>&1
+echo [INFO] ログ: %LOG_FILE%
+pause
+exit /b 1
+)
+echo [TRUNCATE] %%T end | tee -a “%LOG_FILE%”
+echo [INFO] %%T のトランケートが完了しました！ | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+)
+
+REM 外部キー制約を有効化
+echo [INFO] 外部キー制約を有効化しています… | tee -a “%LOG_FILE%”
+mysql -h %DB_HOST% -P %DB_PORT% -u %DB_USER% -p%DB_PASS% -e “SET FOREIGN_KEY_CHECKS=1;” %DB_NAME% >> “%LOG_FILE%” 2>&1
+if not %ERRORLEVEL%==0 (
+echo [ERROR] 外部キー制約の有効化に失敗しました。手動で有効化してください。 | tee -a “%LOG_FILE%”
+echo [INFO] 手動実行: SET FOREIGN_KEY_CHECKS=1; | tee -a “%LOG_FILE%”
+echo [INFO] ログ: %LOG_FILE%
+pause
+exit /b 1
+)
+echo [INFO] 外部キー制約を有効化しました。 | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+
+echo. | tee -a “%LOG_FILE%”
+echo [INFO] トランケート完了: %DATE% %TIME% | tee -a “%LOG_FILE%”
+echo. | tee -a “%LOG_FILE%”
+echo [INFO] すべての処理が完了しました！: %DATE% %TIME% | tee -a “%LOG_FILE%”
 echo [INFO] ログ: %LOG_FILE% | tee -a “%LOG_FILE%”
 echo.
 pause
-) else (
-echo. | tee -a “%LOG_FILE%”
-echo [ERROR] インポートに失敗しました。終了コード: %ERRORLEVEL% | tee -a “%LOG_FILE%”
-echo [INFO] ログ: %LOG_FILE%
-pause
-exit /b %ERRORLEVEL%
-)
 
 endlocal
