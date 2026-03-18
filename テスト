@@ -1,2 +1,5 @@
 @echo off
 cmd /c “%~dp0mysql_import.dat”
+
+@echo off
+cmd /c “%~dp0mysql_export_truncate.dat”
